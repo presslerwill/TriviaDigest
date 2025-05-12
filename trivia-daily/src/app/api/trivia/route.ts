@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/middleware';
 
-export async function GET(request: Request) {
-  const { supabase } = createClient(request as any);
+export async function GET(req: NextRequest) {
+  const { supabase } = createClient(req);
   
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
