@@ -1,18 +1,26 @@
-import Image from "next/image";
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
+'use client';
+import { useState } from 'react';
+import TriviaCard from '@/components/TriviaCard';
+import ScoreDisplay from '@/components/ScoreDisplay';
+import LeaderboardTable from '@/components/LeaderboardTable';
 
-export default async function Home() {
-  const cookieStore = cookies()
-  const supabase = await createClient(cookieStore)
-
-  const { data: todos } = await supabase.from('todos').select()
+export default function HomePage() {
+  const [score, setScore] = useState<number | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   return (
-    <ul>
-      {todos?.map((todo) => (
-        <li>{todo}</li>
-      ))}
-    </ul>
-  )
+    <main className="min-h-screen bg-gray-100 py-10 px-4">
+      <h1 className="text-3xl font-bold text-center mb-6">🧠 Daily Trivia Challenge</h1>
+
+      {/* Show trivia game first */}
+      {score === null ? (
+        <TriviaCard onScore={setScore} />
+      ) : (
+        <ScoreDisplay score={score} onSubmit={() => setSubmitted(true)} />
+      )}
+
+      {/* Show leaderboard after submitting score */}
+      {submitted && <LeaderboardTable />}
+    </main>
+  );
 }
