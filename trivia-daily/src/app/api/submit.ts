@@ -1,7 +1,8 @@
-import { supabase } from '../../lib/supabaseClient';
+import { createClient } from '../../utils/supabase/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
+  const { supabase } = createClient(req);
   const body = await req.json();
   const { username, score } = body;
 
