@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 type Score = {
   username: string;
   score: number;
-  created_at: string;
+  date: string;
 };
 
 export default function LeaderboardTable() {
@@ -17,7 +17,8 @@ export default function LeaderboardTable() {
 
       const res = await fetch(`/api/leaderboard?date=${today}`);
       const data = await res.json();
-      setScores(data);
+      console.log('Leaderboard API response:', data);
+      setScores(Array.isArray(data) ? data : []);
       setLoading(false);
     };
 
@@ -26,12 +27,16 @@ export default function LeaderboardTable() {
 
   if (loading) return <p className="text-center">Loading leaderboard...</p>;
 
+  if (!Array.isArray(scores) || scores.length === 0) {
+    return <p className="text-center">No scores yet for today.</p>;
+  }
+
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-10">
+    <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-10 border border-[var(--foreground)]">
       <h2 className="text-2xl font-semibold mb-4 text-center">🏆 Leaderboard</h2>
       <table className="w-full text-left">
         <thead>
-          <tr className="border-b">
+          <tr className="border-b border-[var(--foreground)]">
             <th className="py-2">#</th>
             <th className="py-2">Username</th>
             <th className="py-2">Score</th>
@@ -39,7 +44,7 @@ export default function LeaderboardTable() {
         </thead>
         <tbody>
           {scores.map((s, i) => (
-            <tr key={i} className="border-t">
+            <tr key={i} className="border-t border-[var(--foreground)] hover:bg-[var(--foreground)] hover:bg-opacity-5">
               <td className="py-2">{i + 1}</td>
               <td className="py-2">{s.username}</td>
               <td className="py-2">{s.score}</td>

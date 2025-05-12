@@ -1,4 +1,4 @@
-import { createClient } from '../../utils/supabase/middleware';
+import { createClient } from '../../../utils/supabase/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {

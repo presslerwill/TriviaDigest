@@ -32,7 +32,7 @@ export default function ScoreDisplay({ score, onSubmit }: Props) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-6 text-center">
+    <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-6 text-center border border-[var(--foreground)]">
       <h2 className="text-xl font-semibold mb-4">You got {score}/1!</h2>
 
       {!submitted ? (
@@ -40,14 +40,14 @@ export default function ScoreDisplay({ score, onSubmit }: Props) {
           <input
             type="text"
             placeholder="Enter a username"
-            className="border px-4 py-2 rounded w-2/3 mb-4"
+            className="border border-[var(--foreground)] bg-[var(--background)] px-4 py-2 rounded w-2/3 mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--foreground)] focus:ring-opacity-50"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <br />
           <button
             onClick={handleSubmit}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-[var(--foreground)] hover:bg-opacity-90 text-[var(--background)] px-4 py-2 rounded transition-colors"
             disabled={loading}
           >
             {loading ? 'Submitting...' : 'Submit Score'}
@@ -55,13 +55,13 @@ export default function ScoreDisplay({ score, onSubmit }: Props) {
         </>
       ) : (
         <>
-          <p className="text-green-600 font-medium mb-4">Score submitted! ✅</p>
+          <p className="text-green-500 font-medium mb-4">Score submitted! ✅</p>
           <button
             onClick={() => {
               navigator.clipboard.writeText(shareText);
               alert('Score copied to clipboard!');
             }}
-            className="bg-gray-800 text-white px-4 py-2 rounded"
+            className="bg-[var(--foreground)] text-[var(--background)] px-4 py-2 rounded hover:bg-opacity-90 transition-colors"
           >
             Share My Score
           </button>
