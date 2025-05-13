@@ -5,6 +5,7 @@ type Score = {
   username: string;
   score: number;
   date: string;
+  time?: number;
 };
 
 export default function LeaderboardTable() {
@@ -40,14 +41,16 @@ export default function LeaderboardTable() {
             <th className="py-2">#</th>
             <th className="py-2">Username</th>
             <th className="py-2">Score</th>
+            <th className="py-2">Time</th>
           </tr>
         </thead>
         <tbody>
           {scores.map((s, i) => (
-            <tr key={i} className="border-t border-[var(--foreground)] hover:bg-[var(--foreground)] hover:bg-opacity-5">
+            <tr key={i} className="border-t border-[var(--foreground)]">
               <td className="py-2">{i + 1}</td>
               <td className="py-2">{s.username}</td>
               <td className="py-2">{s.score}</td>
+              <td className="py-2">{typeof s.time === 'number' ? s.time : '-'}</td>
             </tr>
           ))}
         </tbody>

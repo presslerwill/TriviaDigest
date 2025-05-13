@@ -1,16 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Props = {
   score: number;
+  timer: number;
   onSubmit: () => void;
 };
 
-export default function ScoreDisplay({ score, onSubmit }: Props) {
+export default function ScoreDisplay({ score, timer, onSubmit }: Props) {
   const [username, setUsername] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shareText, setShareText] = useState('');
+
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('trivia-username') : '';
+    if (saved) setUsername(saved);
+  }, []);
 
   const handleSubmit = async () => {
     if (!username) return alert('Please enter a username.');
@@ -18,7 +24,7 @@ export default function ScoreDisplay({ score, onSubmit }: Props) {
 
     const res = await fetch('/api/submit', {
       method: 'POST',
-      body: JSON.stringify({ username, score }),
+      body: JSON.stringify({ username, score, timer }),
       headers: { 'Content-Type': 'application/json' },
     });
 
@@ -27,13 +33,18 @@ export default function ScoreDisplay({ score, onSubmit }: Props) {
     setSubmitted(true);
     onSubmit();
 
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('trivia-username', username);
+    }
+
     const today = new Date().toISOString().split('T')[0];
-    setShareText(`I scored ${score}/1 on today's trivia (${today})! Can you beat me? 🤔 https://your-domain.com`);
+    setShareText(`I scored ${score}/1 in ${timer}s on today's trivia (${today})! Can you beat me? 🤔 https://your-domain.com`);
   };
 
   return (
     <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-6 text-center border border-[var(--foreground)]">
       <h2 className="text-xl font-semibold mb-4">You got {score}/1!</h2>
+      <h3 className="text-lg mb-4">Time: {timer}s</h3>
 
       {!submitted ? (
         <>

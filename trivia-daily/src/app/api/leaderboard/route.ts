@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
     .select('*')
     .gte('date', `${date}T00:00:00Z`)
     .lte('date', `${date}T23:59:59Z`)
-    .order('score', { ascending: false });
+    .order('score', { ascending: false })
+    .order('time', { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);

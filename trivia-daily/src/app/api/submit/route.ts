@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest) {
   const { supabase } = createClient(req);
   const body = await req.json();
-  const { username, score } = body;
+  const { username, score, timer } = body;
 
   const { error } = await supabase.from('trivia_scores').insert([
-    { username, score },
+    { username, score, time: timer },
   ]);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
