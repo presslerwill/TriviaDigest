@@ -28,7 +28,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] py-10 px-4">
-      <h1 className="text-3xl font-bold text-center mb-6">🧠 Daily Trivia Challenge</h1>
+      <h1 className="text-3xl font-bold text-center mb-6">🧠 Trivia Digest</h1>
 
       {/* Show Start button first */}
       {!started && (
@@ -52,7 +52,7 @@ export default function HomePage() {
         <TriviaCard onScore={handleScore} />
       ) : (
         started && score !== null && (
-          <ScoreDisplay score={score} timer={timer} onSubmit={() => setSubmitted(true)} />
+          <ScoreDisplay score={score} timer={timer} maxScore={1000} onSubmit={() => setSubmitted(true)} />
         )
       )}
 

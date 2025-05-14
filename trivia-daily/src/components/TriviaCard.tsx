@@ -11,6 +11,7 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
   const [question, setQuestion] = useState<TriviaQuestion | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [skipped, setSkipped] = useState(false);
 
   useEffect(() => {
     fetch('/api/trivia')
@@ -19,11 +20,17 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
   }, []);
 
   const handleSelect = (index: number) => {
-    if (selected !== null) return; // Prevent multiple answers
+    if (selected !== null || skipped) return; // Prevent multiple answers or skip
     setSelected(index);
     const correct = question?.correct_index === index;
     setIsCorrect(correct);
-    onScore(correct ? 1 : 0);
+    onScore(correct ? 1000 : 0);
+  };
+
+  const handleSkip = () => {
+    if (selected !== null || skipped) return;
+    setSkipped(true);
+    onScore(500);
   };
 
   if (!question) return <p className="text-center">Loading...</p>;
@@ -46,16 +53,27 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
             <li
               key={i}
               onClick={() => handleSelect(i)}
-              className={`p-3 border border-[var(--foreground)] rounded cursor-pointer ${highlightClass}`}
+              className={`p-3 border border-[var(--foreground)] rounded cursor-pointer ${highlightClass} ${selected === i ? (i === question.correct_index ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : ''} ${selected !== null || skipped ? 'pointer-events-none opacity-60' : ''}`}
             >
               {opt}
             </li>
           );
         })}
       </ul>
-      {selected !== null && (
+      <button
+        onClick={handleSkip}
+        className="mt-4 px-4 py-2 rounded bg-yellow-400 text-black font-semibold hover:bg-yellow-300 disabled:opacity-50"
+        disabled={selected !== null || skipped}
+      >
+        Skip (500 pts)
+      </button>
+      {(selected !== null || skipped) && (
         <p className="mt-4 text-lg font-medium">
-          {isCorrect ? '✅ Correct!' : '❌ Incorrect'}
+          {skipped
+            ? '⏭️ Skipped! +500 points'
+            : isCorrect
+            ? '✅ Correct! +1000 points'
+            : '❌ Incorrect +0 points'}
         </p>
       )}
     </div>

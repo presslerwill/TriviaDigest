@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 type Props = {
   score: number;
   timer: number;
+  maxScore: number;
   onSubmit: () => void;
 };
 
-export default function ScoreDisplay({ score, timer, onSubmit }: Props) {
+export default function ScoreDisplay({ score, timer, maxScore, onSubmit }: Props) {
   const [username, setUsername] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,12 +39,12 @@ export default function ScoreDisplay({ score, timer, onSubmit }: Props) {
     }
 
     const today = new Date().toISOString().split('T')[0];
-    setShareText(`I scored ${score}/1 in ${timer}s on today's trivia (${today})! Can you beat me? 🤔 https://your-domain.com`);
+    setShareText(`I scored ${score}/${maxScore} in ${timer}s on today's trivia (${today})! Can you beat me? 🤔 https://your-domain.com`);
   };
 
   return (
     <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto mt-6 text-center border border-[var(--foreground)]">
-      <h2 className="text-xl font-semibold mb-4">You got {score}/1!</h2>
+      <h2 className="text-xl font-semibold mb-4">You got {score}/{maxScore}!</h2>
       <h3 className="text-lg mb-4">Time: {timer}s</h3>
 
       {!submitted ? (
