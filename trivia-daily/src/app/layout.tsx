@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Daily Trivia Challenge",
   description: "Test your knowledge with daily trivia questions!",
+  icons: {
+    icon: '/triviadigest.ico',
+  },
 };
 
 export default function RootLayout({
