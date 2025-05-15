@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import LeaderboardTable from './LeaderboardTable';
 
 type TriviaQuestion = {
   question: string;
@@ -12,26 +13,55 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
   const [selected, setSelected] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const [hasPlayedToday, setHasPlayedToday] = useState(false);
 
   useEffect(() => {
+    // Check if user has played today
+    const lastPlayed = localStorage.getItem('lastPlayedDate');
+    const today = new Date().toDateString();
+    
+    if (lastPlayed === today) {
+      setHasPlayedToday(true);
+      return;
+    }
+
+    // If they haven't played today, fetch the question
     fetch('/api/trivia')
       .then(res => res.json())
       .then(data => setQuestion(data));
   }, []);
 
   const handleSelect = (index: number) => {
-    if (selected !== null || skipped) return; // Prevent multiple answers or skip
+    if (selected !== null || skipped || hasPlayedToday) return;
     setSelected(index);
     const correct = question?.correct_index === index;
     setIsCorrect(correct);
     onScore(correct ? 1000 : 0);
+    
+    // Save the play date
+    localStorage.setItem('lastPlayedDate', new Date().toDateString());
   };
 
   const handleSkip = () => {
-    if (selected !== null || skipped) return;
+    if (selected !== null || skipped || hasPlayedToday) return;
     setSkipped(true);
     onScore(500);
+    
+    // Save the play date
+    localStorage.setItem('lastPlayedDate', new Date().toDateString());
   };
+
+  if (hasPlayedToday) {
+    return (
+      <>
+        <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto border border-[var(--foreground)]">
+          <h2 className="text-xl font-semibold mb-4">Come back tomorrow!</h2>
+          <p>You've already played today's trivia. Check back tomorrow for a new question!</p>
+        </div>
+        <LeaderboardTable />
+      </>
+    );
+  }
 
   if (!question) return <p className="text-center">Loading...</p>;
 
