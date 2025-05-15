@@ -56,7 +56,7 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
       <>
         <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto border border-[var(--foreground)]">
           <h2 className="text-xl font-semibold mb-4">Come back tomorrow!</h2>
-          <p>You've already played today's trivia. Check back tomorrow for a new question!</p>
+          <p>You&apos;ve already played today&apos;s trivia. Check back tomorrow for a new question!</p>
         </div>
         <LeaderboardTable />
       </>
