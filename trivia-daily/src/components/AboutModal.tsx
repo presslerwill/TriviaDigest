@@ -16,7 +16,7 @@ export default function AboutModal() {
         <ol className="list-decimal list-inside space-y-2 text-[var(--foreground)]/80">
           <li>Each day, you get one trivia question to answer</li>
           <li>Choose the correct answer to earn 1000 points</li>
-          <li>If you're not sure, you can skip for 500 points</li>
+          <li>If you&apos;re not sure, you can skip for 500 points</li>
           <li>Your score is based on both accuracy and speed</li>
           <li>Compete with others on the daily leaderboard</li>
         </ol>
