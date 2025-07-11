@@ -39,7 +39,7 @@ export default function ScoreDisplay({ score, timer, maxScore, onSubmit }: Props
     }
 
     const today = new Date().toISOString().split('T')[0];
-    setShareText(`I scored ${score}/${maxScore} in ${timer}s on today's trivia (${today})! Can you beat me? 🤔 https://your-domain.com`);
+    setShareText(`I scored ${score}/${maxScore} in ${timer}s on today's trivia (${today})! Can you beat me? 🤔 triviadigest.com`);
   };
 
   return (
