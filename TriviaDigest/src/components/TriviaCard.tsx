@@ -69,6 +69,8 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     );
   }
 
+  console.log(allQuestions)
+
   if (!question) return <p className="text-center">Loading...</p>;
 
   return (
