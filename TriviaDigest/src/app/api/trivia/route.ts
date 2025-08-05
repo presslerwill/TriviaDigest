@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     .from('trivia_questions')
     .select('*')
     .eq('date', today)
-    .single();
+    .limit(10);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

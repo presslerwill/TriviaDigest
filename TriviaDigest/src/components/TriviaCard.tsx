@@ -9,6 +9,7 @@ type TriviaQuestion = {
 };
 
 export default function TriviaCard({ onScore }: { onScore: (score: number) => void }) {
+  const [allQuestions, setAllQuestions] = useState<TriviaQuestion[] | null>();
   const [question, setQuestion] = useState<TriviaQuestion | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -28,8 +29,13 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     // If they haven't played today, fetch the question
     fetch('/api/trivia')
       .then(res => res.json())
-      .then(data => setQuestion(data));
-  }, []);
+      .then((data: TriviaQuestion[]) => {
+        setAllQuestions(data);
+        if (data && data.length > 0) {
+          setQuestion(data[0]);
+        }
+      });
+  }, [])
 
   const handleSelect = (index: number) => {
     if (selected !== null || skipped || hasPlayedToday) return;
