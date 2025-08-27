@@ -84,6 +84,7 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     return <p className="text-center">Loading...</p>;
   }
 
+
   if (gameCompleted) {
     const totalScore = scores.reduce((sum, score) => sum + score, 0);
     const correctAnswers = questionResults.filter(result => result === true).length;
