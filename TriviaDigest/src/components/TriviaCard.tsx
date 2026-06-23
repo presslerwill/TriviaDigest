@@ -23,14 +23,19 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     // Check if user has played today
     const lastPlayed = localStorage.getItem('lastPlayedDate');
     const today = new Date().toDateString();
-    
+
     if (lastPlayed === today) {
       setHasPlayedToday(true);
       return;
     }
 
+    // Send the user's own local calendar date so they get "today's" trivia the
+    // moment their local clock crosses midnight, regardless of timezone.
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     // If they haven't played today, fetch the questions
-    fetch('/api/trivia')
+    fetch(`/api/trivia?date=${localDate}`)
       .then(res => res.json())
       .then((data: TriviaQuestion[]) => {
         setAllQuestions(data);

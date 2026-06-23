@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "denoland.vscode-deno",
+    "anthropic.claude-code"
+  ]
+}
