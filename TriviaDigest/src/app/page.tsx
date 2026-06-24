@@ -5,7 +5,8 @@ import ScoreDisplay from '@/components/ScoreDisplay';
 
 export default function HomePage() {
   const [started, setStarted] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<(number | null)[] | null>(null);
+  const [gameDate, setGameDate] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [timer, setTimer] = useState(0);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
@@ -15,7 +16,7 @@ export default function HomePage() {
     // Check if user has played today
     const lastPlayed = localStorage.getItem('lastPlayedDate');
     const today = new Date().toDateString();
-    
+
     if (lastPlayed === today) {
       setHasPlayedToday(true);
     }
@@ -24,7 +25,7 @@ export default function HomePage() {
   const handleStart = () => {
     // Don't start if already played today
     if (hasPlayedToday) return;
-    
+
     setStarted(true);
     setTimer(0);
     intervalRef.current = setInterval(() => {
@@ -32,8 +33,9 @@ export default function HomePage() {
     }, 1000);
   };
 
-  const handleScore = (score: number) => {
-    setScore(score);
+  const handleComplete = (finalAnswers: (number | null)[], date: string) => {
+    setAnswers(finalAnswers);
+    setGameDate(date);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
@@ -55,22 +57,27 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Show timer if started and not submitted and hasn't played today */}
-      {started && score === null && !submitted && !hasPlayedToday && (
+      {/* Show timer if started and not yet finished and hasn't played today */}
+      {started && answers === null && !submitted && !hasPlayedToday && (
         <div className="text-center mb-4 text-lg">Time: {timer}s</div>
       )}
 
       {/* Show trivia game after starting */}
-      {started && score === null ? (
-        <TriviaCard onScore={handleScore} />
+      {started && answers === null ? (
+        <TriviaCard onComplete={handleComplete} />
       ) : (
-        started && score !== null && !hasPlayedToday && (
-          <ScoreDisplay score={score} timer={timer} maxScore={1000} onSubmit={() => setSubmitted(true)} />
+        started && answers !== null && !hasPlayedToday && (
+          <ScoreDisplay
+            answers={answers}
+            date={gameDate}
+            timer={timer}
+            onSubmit={() => setSubmitted(true)}
+          />
         )
       )}
 
       {/* Show leaderboard after submitting score or if already played today */}
-      {(submitted || hasPlayedToday) && <TriviaCard onScore={handleScore} />}
+      {(submitted || hasPlayedToday) && <TriviaCard onComplete={handleComplete} />}
     </main>
   );
 }

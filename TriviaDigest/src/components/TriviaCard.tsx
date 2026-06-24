@@ -7,17 +7,18 @@ import GameProgress from './GameProgress';
 type TriviaQuestion = {
   question: string;
   options: string[];
-  correct_index: number;
 };
 
-export default function TriviaCard({ onScore }: { onScore: (score: number) => void }) {
+type TriviaCardProps = {
+  onComplete: (answers: (number | null)[], date: string) => void;
+};
+
+export default function TriviaCard({ onComplete }: TriviaCardProps) {
   const [allQuestions, setAllQuestions] = useState<TriviaQuestion[] | null>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>([]);
-  const [questionResults, setQuestionResults] = useState<(boolean | null)[]>([]);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
-  const [gameCompleted, setGameCompleted] = useState(false);
-  const [scores, setScores] = useState<number[]>([]);
+  const [gameDate, setGameDate] = useState('');
 
   useEffect(() => {
     // Check if user has played today
@@ -33,43 +34,29 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     // moment their local clock crosses midnight, regardless of timezone.
     const now = new Date();
     const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    setGameDate(localDate);
 
-    // If they haven't played today, fetch the questions
+    // If they haven't played today, fetch the questions (without answers).
     fetch(`/api/trivia?date=${localDate}`)
       .then(res => res.json())
       .then((data: TriviaQuestion[]) => {
         setAllQuestions(data);
-        // Initialize arrays for tracking answers and results
         setUserAnswers(new Array(data.length).fill(null));
-        setQuestionResults(new Array(data.length).fill(null));
-        setScores(new Array(data.length).fill(0));
       });
   }, []);
 
-  const handleAnswer = (isCorrect: boolean, questionIndex: number) => {
+  const handleAnswer = (selectedIndex: number, questionIndex: number) => {
     const newUserAnswers = [...userAnswers];
-    const newQuestionResults = [...questionResults];
-    const newScores = [...scores];
-    
-    newUserAnswers[questionIndex] = questionIndex; // Store the selected answer
-    newQuestionResults[questionIndex] = isCorrect;
-    newScores[questionIndex] = isCorrect ? 1000 : 0;
-    
+    newUserAnswers[questionIndex] = selectedIndex;
     setUserAnswers(newUserAnswers);
-    setQuestionResults(newQuestionResults);
-    setScores(newScores);
-    
-    // Move to next question or complete game
+
+    // Move to next question or finish. Scoring is done server-side on submit,
+    // so we just collect the picked options here.
     if (currentQuestionIndex < (allQuestions?.length || 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Game completed
-      setGameCompleted(true);
-      const totalScore = newScores.reduce((sum, score) => sum + score, 0);
-      onScore(totalScore);
-      
-      // Save the play date
       localStorage.setItem('lastPlayedDate', new Date().toDateString());
+      onComplete(newUserAnswers, gameDate);
     }
   };
 
@@ -89,34 +76,6 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
     return <p className="text-center">Loading...</p>;
   }
 
-
-  if (gameCompleted) {
-    const totalScore = scores.reduce((sum, score) => sum + score, 0);
-    const correctAnswers = questionResults.filter(result => result === true).length;
-    
-    return (
-      <>
-        <div className="bg-[var(--background)] p-6 rounded-xl shadow-md w-full max-w-xl mx-auto border border-[var(--foreground)]">
-          <h2 className="text-xl font-semibold mb-4">Game Complete!</h2>
-          <p className="mb-2">Final Score: {totalScore} points</p>
-          <p className="mb-4">You got {correctAnswers} out of {allQuestions.length} questions correct!</p>
-          
-          <div className="space-y-2">
-            {allQuestions.map((question, index) => (
-              <div key={index} className="p-3 border rounded">
-                <p className="font-medium">Question {index + 1}: {question.question}</p>
-                <p className={`text-sm ${questionResults[index] ? 'text-green-600' : 'text-red-600'}`}>
-                  {questionResults[index] ? '✅ Correct' : '❌ Incorrect'}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <LeaderboardTable />
-      </>
-    );
-  }
-
   const currentQuestion = allQuestions[currentQuestionIndex];
 
   return (
@@ -124,18 +83,16 @@ export default function TriviaCard({ onScore }: { onScore: (score: number) => vo
       <GameProgress
         currentQuestion={currentQuestionIndex + 1}
         totalQuestions={allQuestions.length}
-        answeredQuestions={userAnswers.filter(answer => answer !== null)}
-        scores={scores}
+        answeredQuestions={userAnswers.filter((answer) => answer !== null) as number[]}
       />
-      
+
       <QuestionCard
         question={currentQuestion}
         questionNumber={currentQuestionIndex + 1}
         totalQuestions={allQuestions.length}
         onAnswer={handleAnswer}
-        isAnswered={questionResults[currentQuestionIndex] !== null}
+        isAnswered={userAnswers[currentQuestionIndex] !== null}
         userAnswer={userAnswers[currentQuestionIndex]}
-        isCorrect={questionResults[currentQuestionIndex]}
       />
     </>
   );

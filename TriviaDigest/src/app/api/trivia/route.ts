@@ -11,9 +11,11 @@ export async function GET(req: NextRequest) {
     ? dateParam
     : new Date().toISOString().split('T')[0];
 
+  // Never send `correct_index` to the client — the answer must stay server-side,
+  // otherwise the game can be trivially beaten by reading the network response.
   const { data: question, error } = await supabase
     .from('trivia_questions')
-    .select('*')
+    .select('question, options, category')
     .eq('date', today)
     .order('order', { ascending: true, nullsFirst: false })
     .limit(10);
