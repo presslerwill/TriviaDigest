@@ -7,9 +7,15 @@ export async function GET(req: NextRequest) {
   // The caller's local calendar date (so each user's "today" unlocks at their own
   // midnight, not the server's). Falls back to the server's UTC date if missing/invalid.
   const dateParam = req.nextUrl.searchParams.get('date');
+  const utcToday = new Date().toISOString().split('T')[0];
   const today = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
     ? dateParam
-    : new Date().toISOString().split('T')[0];
+    : utcToday;
+
+  const maxAllowedDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  if (today > maxAllowedDate) {
+    return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+  }
 
   // Never send `correct_index` to the client — the answer must stay server-side,
   // otherwise the game can be trivially beaten by reading the network response.
