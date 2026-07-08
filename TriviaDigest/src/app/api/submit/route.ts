@@ -1,8 +1,12 @@
 import { createClient } from '../../../utils/supabase/middleware';
+import { createServiceClient } from '../../../utils/supabase/service';
 import { NextRequest, NextResponse } from 'next/server';
+import { Filter } from 'bad-words';
 
 const MAX_USERNAME_LENGTH = 20;
 const POINTS_PER_CORRECT = 1000;
+const RESERVED_NAMES = new Set(['admin', 'administrator', 'moderator', 'mod', 'triviadigest', 'staff', 'support']);
+const profanityFilter = new Filter();
 
 export async function POST(req: NextRequest) {
   const { supabase } = createClient(req);
@@ -26,6 +30,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'A username is required' }, { status: 400 });
   }
   const cleanUsername = username.trim().slice(0, MAX_USERNAME_LENGTH);
+
+  if (RESERVED_NAMES.has(cleanUsername.toLowerCase())) {
+    return NextResponse.json({ error: 'That username is reserved' }, { status: 400 });
+  }
+
+  if (profanityFilter.isProfane(cleanUsername)) {
+    return NextResponse.json({ error: 'Please choose a different username' }, { status: 400 });
+  }
 
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
@@ -67,8 +79,24 @@ export async function POST(req: NextRequest) {
   const correctCount = results.filter(Boolean).length;
   const score = correctCount * POINTS_PER_CORRECT;
 
-  const { error: insertError } = await supabase.from('trivia_scores').insert([
-    { username: cleanUsername, score, time: Math.round(timer) },
+  const serviceClient = createServiceClient();
+
+  const { data: existing } = await serviceClient
+    .from('trivia_scores')
+    .select('id')
+    .eq('date', date)
+    .eq('username', cleanUsername)
+    .maybeSingle();
+
+  if (existing) {
+    return NextResponse.json(
+      { error: 'You have already submitted a score for today' },
+      { status: 409 },
+    );
+  }
+
+  const { error: insertError } = await serviceClient.from('trivia_scores').insert([
+    { username: cleanUsername, score, time: Math.round(timer), date },
   ]);
 
   if (insertError) {
