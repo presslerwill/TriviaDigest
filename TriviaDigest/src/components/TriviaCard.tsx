@@ -21,23 +21,17 @@ export default function TriviaCard({ onComplete }: TriviaCardProps) {
   const [gameDate, setGameDate] = useState('');
 
   useEffect(() => {
-    // Check if user has played today
-    const lastPlayed = localStorage.getItem('lastPlayedDate');
-    const today = new Date().toDateString();
+    const utcToday = new Date().toISOString().split('T')[0];
 
-    if (lastPlayed === today) {
+    const lastPlayed = localStorage.getItem('lastPlayedDate');
+    if (lastPlayed === utcToday) {
       setHasPlayedToday(true);
       return;
     }
 
-    // Send the user's own local calendar date so they get "today's" trivia the
-    // moment their local clock crosses midnight, regardless of timezone.
-    const now = new Date();
-    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    setGameDate(localDate);
+    setGameDate(utcToday);
 
-    // If they haven't played today, fetch the questions (without answers).
-    fetch(`/api/trivia?date=${localDate}`)
+    fetch(`/api/trivia`)
       .then(res => res.json())
       .then((data: TriviaQuestion[]) => {
         setAllQuestions(data);
@@ -55,7 +49,7 @@ export default function TriviaCard({ onComplete }: TriviaCardProps) {
     if (currentQuestionIndex < (allQuestions?.length || 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      localStorage.setItem('lastPlayedDate', new Date().toDateString());
+      localStorage.setItem('lastPlayedDate', new Date().toISOString().split('T')[0]);
       onComplete(newUserAnswers, gameDate);
     }
   };

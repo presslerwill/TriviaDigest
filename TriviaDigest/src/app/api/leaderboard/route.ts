@@ -1,14 +1,21 @@
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get('date');
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('trivia_scores')
     .select('*')
-    .gte('date', `${date}T00:00:00Z`)
-    .lte('date', `${date}T23:59:59Z`)
+    .eq('date', date)
     .order('score', { ascending: false })
     .order('time', { ascending: true });
 
