@@ -3,11 +3,6 @@ import { createServiceClient } from '../../../utils/supabase/service';
 import { NextRequest, NextResponse } from 'next/server';
 import { Filter } from 'bad-words';
 
-const supabaseAdmin = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 const MAX_USERNAME_LENGTH = 20;
 const POINTS_PER_CORRECT = 1000;
 const RESERVED_NAMES = new Set(['admin', 'administrator', 'moderator', 'mod', 'triviadigest', 'staff', 'support']);
