@@ -34,7 +34,10 @@ export default function ScoreDisplay({ answers, date, timer, onSubmit }: Props) 
     });
 
     setLoading(false);
-    if (!res.ok) return alert('Failed to submit score.');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string };
+      return alert(err.error ?? 'Failed to submit score.');
+    }
 
     // The server is the source of truth for the score.
     const result = await res.json();

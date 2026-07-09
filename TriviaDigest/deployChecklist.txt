@@ -1,0 +1,54 @@
+🔴 Critical — fix before launch
+1. Correct answers are sent to the browser
+src/app/api/trivia/route.ts:16 does select('*'), which includes correct_index. The browser receives the right answer for every question, and all scoring happens client-side in QuestionCard.tsx:39. Anyone can open DevTools → Network, read the answers, and ace every game.
+
+Fix: Strip correct_index from the trivia payload (.select('question, options, category, order, date')) and validate answers server-side (see #2).
+
+2. Score submission trusts the client entirely
+src/app/api/submit/route.ts inserts username, score, timer straight from the request body with zero validation. A user can do:
+
+
+curl -X POST https://triviadigest.com/api/submit \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"hacker","score":999999,"timer":0}'
+…and top the leaderboard forever. No auth, no bounds check, no "did they actually play today."
+
+Fix: The right architecture is to submit the user's answers (not a score), have the server look up correct_index, compute the score, and insert it. At minimum: clamp score to [0, 10000], require timer to be a positive realistic number, and reject malformed input.
+
+3. Future days' questions (with answers) are fetchable today
+The date param is open-ended: /api/trivia?date=2026-06-24 returns tomorrow's questions including answers, because the generator pre-creates them a day ahead (generate-trivia/index.ts:24-30). Combined with #1, players can pre-load tomorrow's answers.
+
+Fix: Reject any date later than the server's current UTC date in the trivia route.
+
+4. Verify Row Level Security (RLS) is enabled on both tables
+This is the one I can't confirm from the code and it's the most dangerous if wrong. The anon key is public (it's NEXT_PUBLIC_*, shipped in the JS bundle). If RLS is off or permissive on trivia_scores / trivia_questions, anyone can bypass your API routes entirely and hit Supabase's REST API directly to:
+
+read correct_index for all dates,
+insert unlimited fake scores,
+delete the entire leaderboard.
+Action: In Supabase, confirm RLS is enabled on both tables with policies that allow select only on appropriate columns and no direct insert/update/delete for the anon role. All writes should go through your server (using the service role) or security definer RPCs. Please verify this before launch — I'd treat it as critical until confirmed.
+
+🟠 High
+5. "Played today" is localStorage-only
+page.tsx:15 and TriviaCard.tsx:24 gate replays purely via localStorage. Incognito / clearing storage / another browser = unlimited plays and submissions. Since there's no per-user identity, true one-play-per-day enforcement requires either accounts or at least server-side checks (IP/device heuristics are weak but better than nothing). At minimum, enforce it server-side in /api/submit.
+
+6. No rate limiting anywhere
+/api/submit can be scripted to flood the leaderboard and bloat the DB indefinitely. Add rate limiting (Vercel middleware, Upstash, or a Supabase-side check) on submit especially.
+
+7. Username has no validation or length limit
+ScoreDisplay.tsx sends any string. React escapes output in LeaderboardTable.tsx:51, so it's not a stored-XSS vector today — but there's no length cap (DB bloat / layout breakage), no profanity/impersonation filtering, and no trimming. Add a max length (e.g. 20 chars), trim, and a basic content filter before launch since names are public.
+
+🟡 Medium / cleanup
+Leaderboard date param unvalidated — api/leaderboard/route.ts:5 doesn't validate date; a missing param produces nullT00:00:00Z. Not an injection risk (Supabase parameterizes .gte/.lte), but validate it and return 400 on bad input. Same regex guard as the trivia route.
+console.log left in — LeaderboardTable.tsx:21 logs the API response; remove for production.
+Raw DB error messages returned to clients — every route returns error.message to the caller, leaking schema/internal details. Log server-side, return generic messages.
+No security headers / CSP — next.config.ts is empty. Consider adding standard headers (CSP, X-Content-Type-Options, etc.), though AdSense complicates CSP.
+Edge function robustness — generate-trivia/index.ts:91-92 trusts the model's output shape; if Claude wraps JSON in prose or returns malformed data, JSON.parse throws (it's caught, but the day silently has no questions). Consider validating each question's shape (options.length === 4, correct_index in range, valid category) before insert, and an alert/retry if a day ends up with no questions.
+What's already good
+Env files are git-ignored and no secrets are committed.
+Service-role and Anthropic keys live in env/vault, and the migration explicitly warns against committing the key.
+The edge function correctly requires the service-role key and isn't end-user callable.
+React's default escaping protects the leaderboard from XSS.
+The top three things I'd block launch on: #4 (confirm RLS), #2 (server-side scoring/validation), and #1 (stop shipping answers). They're all the same root issue — the server currently trusts the client for everything.
+
+Want me to implement these fixes? I'd suggest starting with a reworked /api/submit + /api/trivia pair that does server-side scoring, plus the RLS policies — I can write those up.
