@@ -1,5 +1,11 @@
 import { createClient } from '../../../utils/supabase/middleware';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+
+const supabaseAdmin = createServiceClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 const MAX_USERNAME_LENGTH = 20;
 const POINTS_PER_CORRECT = 1000;
@@ -67,8 +73,8 @@ export async function POST(req: NextRequest) {
   const correctCount = results.filter(Boolean).length;
   const score = correctCount * POINTS_PER_CORRECT;
 
-  const { error: insertError } = await supabase.from('trivia_scores').insert([
-    { username: cleanUsername, score, time: Math.round(timer) },
+  const { error: insertError } = await supabaseAdmin.from('trivia_scores').insert([
+    { username: cleanUsername, score, time: Math.round(timer), date },
   ]);
 
   if (insertError) {
