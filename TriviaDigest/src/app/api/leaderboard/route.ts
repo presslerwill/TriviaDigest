@@ -7,8 +7,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from('trivia_scores')
     .select('*')
-    .gte('date', `${date}T00:00:00Z`)
-    .lte('date', `${date}T23:59:59Z`)
+    .eq('date', date)
     .order('score', { ascending: false })
     .order('time', { ascending: true });
 

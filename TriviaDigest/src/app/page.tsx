@@ -15,7 +15,7 @@ export default function HomePage() {
   useEffect(() => {
     // Check if user has played today
     const lastPlayed = localStorage.getItem('lastPlayedDate');
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0];
 
     if (lastPlayed === today) {
       setHasPlayedToday(true);
