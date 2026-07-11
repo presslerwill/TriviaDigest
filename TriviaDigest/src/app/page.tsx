@@ -28,6 +28,9 @@ export default function HomePage() {
 
     setStarted(true);
     setTimer(0);
+  };
+
+  const handleReady = () => {
     intervalRef.current = setInterval(() => {
       setTimer((prev) => prev + 1);
     }, 1000);
@@ -64,7 +67,7 @@ export default function HomePage() {
 
       {/* Show trivia game after starting */}
       {started && answers === null ? (
-        <TriviaCard onComplete={handleComplete} />
+        <TriviaCard onComplete={handleComplete} onReady={handleReady} />
       ) : (
         started && answers !== null && !hasPlayedToday && (
           <ScoreDisplay
