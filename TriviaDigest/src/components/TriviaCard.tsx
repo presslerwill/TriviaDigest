@@ -11,9 +11,10 @@ type TriviaQuestion = {
 
 type TriviaCardProps = {
   onComplete: (answers: (number | null)[], date: string) => void;
+  onReady?: () => void;
 };
 
-export default function TriviaCard({ onComplete }: TriviaCardProps) {
+export default function TriviaCard({ onComplete, onReady }: TriviaCardProps) {
   const [allQuestions, setAllQuestions] = useState<TriviaQuestion[] | null>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>([]);
@@ -36,6 +37,7 @@ export default function TriviaCard({ onComplete }: TriviaCardProps) {
       .then((data: TriviaQuestion[]) => {
         setAllQuestions(data);
         setUserAnswers(new Array(data.length).fill(null));
+        onReady?.();
       });
   }, []);
 
