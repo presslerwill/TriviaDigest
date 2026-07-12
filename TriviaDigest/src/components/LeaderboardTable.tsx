@@ -18,7 +18,6 @@ export default function LeaderboardTable() {
 
       const res = await fetch(`/api/leaderboard?date=${today}`);
       const data = await res.json();
-      console.log('Leaderboard API response:', data);
       setScores(Array.isArray(data) ? data : []);
       setLoading(false);
     };
