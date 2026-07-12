@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
     .limit(10);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('trivia fetch error:', error);
+    return NextResponse.json({ error: 'Failed to load questions' }, { status: 500 });
   }
 
   if (!question) {

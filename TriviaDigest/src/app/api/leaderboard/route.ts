@@ -19,6 +19,9 @@ export async function GET(req: NextRequest) {
     .order('score', { ascending: false })
     .order('time', { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('leaderboard fetch error:', error);
+    return NextResponse.json({ error: 'Failed to load leaderboard' }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
