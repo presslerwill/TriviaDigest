@@ -1,0 +1,56 @@
+What you already have (resume credit)
+Next.js 15 / React 19 / TypeScript — checks the JS/TS + React boxes
+PostgreSQL via Supabase — checks the relational DB box
+Claude API integration with category-diversity logic — checks LLM API + basic prompt engineering
+Scheduled AI pipeline (pg_cron → Edge Function) — checks agentic workflow basics
+
+What's missing and how to fill it
+Split into four tiers by resume impact vs. effort:
+
+Tier 1 — Do this first (low effort, prerequisite for everything else)
+~~1. Fix the 4 critical security issues~~
+~~The deployChecklist.txt already lists them. Having a live app with known answer-exposure and client-side scoring is a resume liability, not an asset. Fix these before adding anything new. This also becomes a talking point: "identified and remediated critical security vulnerabilities including server-side score validation and RLS hardening."~~
+~~DONE: correct_index stripped from trivia payload, server-side scoring in /api/submit, future-date guard (route uses today hardcoded), username validation + profanity filter, duplicate submission check.~~
+
+2. GitHub Actions CI/CD
+No .github/ directory exists at all. A single workflow file (lint → type-check → deploy on merge to main) is maybe 2 hours of work and directly matches the "DevSecOps pipelines" language in every posting. This is table stakes but it's missing.
+
+3. Question deduplication — prompt injection (Issue #28)
+Extend the existing edge function to fetch the last 30 days of question text and include it in the generation prompt as a negative constraint: "DO NOT generate questions similar to any of these." ~15 lines of code. Costs ~$0.02 extra per generation. Breaks down after ~1 year when question count hits token budget limits — at that point, migrate to #7 below.
+
+Tier 2 — Highest differentiation (builds on existing AI work)
+4. AI Eval Harness ← biggest differentiator
+Add a generation_runs table that logs every time Claude generates questions: timestamp, model version, prompt version, latency (ms), estimated token cost, per-question category and difficulty distribution. Then build a simple admin page (/admin) that surfaces this as a dashboard.
+
+Why this matters: the exact phrase "agent accuracy, latency, safety, and cost effectiveness" appears in multiple FDE and consulting postings. Almost no entry-level candidate has actually built an eval harness — they've just used one. You'd have built one.
+
+5. Prompt versioning
+Add a prompt_versions table. Each generation run references a prompt version ID. This makes the iteration history visible — a concrete "prompt engineering" artifact, not just a claim.
+
+Tier 3 — Adds Python ecosystem + RAG (2-4 weeks)
+6. Python FastAPI service for question generation
+Right now the generator is a Deno Edge Function (TypeScript). Rewrite it as a Python FastAPI service you containerize with Docker. This adds Python + Docker to your resume and you can run it on AWS Lambda (via a container image) or ECS. The AI logic stays the same — you're just changing the runtime.
+
+7. RAG step in question generation + pgvector deduplication
+Two complementary features sharing the same infrastructure:
+
+  RAG grounding: Before calling Claude, fetch a few relevant facts from a small curated knowledge base (even PostgreSQL full-text search over a facts table works). Pass them as context in the prompt. Reduces hallucination; resume framing: "retrieval-augmented generation."
+
+  pgvector semantic deduplication: Enable the pgvector Supabase extension. When a question is inserted, generate and store an embedding. At generation time, run a cosine similarity search — reject any candidate with similarity > 0.85 to an existing question. Scales indefinitely. Resume framing: "vector similarity search," "embedding pipelines," "semantic deduplication." Replaces the prompt-injection approach from #3 once question volume makes that impractical.
+
+Tier 4 — AWS migration (1-2 months, highest effort, hits the most postings)
+8. Deploy to AWS
+Migrate from Vercel/Supabase to AWS: Next.js on Lambda@Edge or App Runner, PostgreSQL on RDS, question-generation service on Lambda (container). Provision it with AWS CDK (TypeScript CDK is fine — matches your existing stack). This is the biggest lift but every single posting in your target list mentions AWS explicitly.
+
+9. WebAuthn/passkey auth
+Wire up actual passkey login using your Ping Identity background. Replace localStorage replay prevention with real auth. This is your existing differentiator and relatively cheap to add since Supabase Auth is already configured in the project.
+
+Bonus: WCAG/Section 508 accessibility
+Federal postings call this out explicitly. A one-day accessibility pass (semantic HTML, keyboard navigation, screen reader labels) is a surprisingly strong differentiator because almost no side projects bother with it. This is also easy to verify with Lighthouse/axe-core.
+
+Suggested order
+~~Security fixes~~ (DONE) + GitHub Actions + question deduplication prompt injection (this week)
+Eval harness + prompt versioning (next 2-3 weeks) — start talking about this in interviews immediately
+Python FastAPI + Docker + RAG + pgvector deduplication (month 2)
+AWS CDK migration (month 2-3)
+WebAuthn auth (can slot in anywhere — plays to your existing background)
