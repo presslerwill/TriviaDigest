@@ -12,11 +12,12 @@ Tier 1 — Do this first (low effort, prerequisite for everything else)
 ~~The deployChecklist.txt already lists them. Having a live app with known answer-exposure and client-side scoring is a resume liability, not an asset. Fix these before adding anything new. This also becomes a talking point: "identified and remediated critical security vulnerabilities including server-side score validation and RLS hardening."~~
 ~~DONE: correct_index stripped from trivia payload, server-side scoring in /api/submit, future-date guard (route uses today hardcoded), username validation + profanity filter, duplicate submission check.~~
 
-2. GitHub Actions CI/CD
+2. GitHub Actions CI/CD - DONE
 No .github/ directory exists at all. A single workflow file (lint → type-check → deploy on merge to main) is maybe 2 hours of work and directly matches the "DevSecOps pipelines" language in every posting. This is table stakes but it's missing.
 
-3. Question deduplication — prompt injection (Issue #28)
-Extend the existing edge function to fetch the last 30 days of question text and include it in the generation prompt as a negative constraint: "DO NOT generate questions similar to any of these." ~15 lines of code. Costs ~$0.02 extra per generation. Breaks down after ~1 year when question count hits token budget limits — at that point, migrate to #7 below.
+~~3. Question deduplication — prompt injection (Issue #28)
+Extend the existing edge function to fetch the last 30 days of question text and include it in the generation prompt as a negative constraint: "DO NOT generate questions similar to any of these." ~15 lines of code. Costs ~$0.02 extra per generation. Breaks down after ~1 year when question count hits token budget limits — at that point, migrate to #7 below.~~
+~~DONE: fetch last 30 days of question text; inject as numbered list in the prompt. Category-diversity logic preserved using 7-day window.~~
 
 Tier 2 — Highest differentiation (builds on existing AI work)
 4. AI Eval Harness ← biggest differentiator
