@@ -39,12 +39,19 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: "Questions already exist", date: targetDate });
     }
 
+    const cutoff30d = new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0];
+    const cutoff7d  = new Date(Date.now() -  7 * 86400000).toISOString().split("T")[0];
+
     const { data: recentRows } = await supabase
       .from("trivia_questions")
-      .select("category")
-      .gte("date", new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0]);
+      .select("category, question, date")
+      .gte("date", cutoff30d);
 
-    const recentCategories = [...new Set((recentRows ?? []).map((r) => r.category).filter(Boolean))];
+    const recentCategories = [...new Set(
+      (recentRows ?? []).filter((r) => r.date >= cutoff7d).map((r) => r.category).filter(Boolean)
+    )];
+
+    const recentQuestions = (recentRows ?? []).map((r) => r.question).filter(Boolean);
 
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -76,7 +83,9 @@ Rules:
 - mix of difficulties across the 10 questions, from easy to hard
 - avoid these recently used categories where possible: ${recentCategories.join(", ") || "none"}
 - questions should be answerable in under 60 seconds
-- no repeated questions`,
+- no repeated questions${recentQuestions.length > 0
+  ? `\n- do NOT generate questions similar to any of these recent questions:\n${recentQuestions.map((q, i) => `  ${i + 1}. ${q}`).join("\n")}`
+  : ""}`,
           },
         ],
       }),
