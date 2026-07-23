@@ -86,6 +86,7 @@ export default function TriviaCard({ onComplete, onReady }: TriviaCardProps) {
         question={currentQuestion}
         questionNumber={currentQuestionIndex + 1}
         totalQuestions={allQuestions.length}
+        date={gameDate}
         onAnswer={handleAnswer}
         isAnswered={userAnswers[currentQuestionIndex] !== null}
         userAnswer={userAnswers[currentQuestionIndex]}
