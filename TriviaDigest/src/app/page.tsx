@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import TriviaCard from '@/components/TriviaCard';
 import ScoreDisplay from '@/components/ScoreDisplay';
+import CountdownTimer from '@/components/CountdownTimer';
 
 export default function HomePage() {
   const [started, setStarted] = useState(false);
@@ -45,7 +46,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] py-10 px-4">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] py-10 px-4 pb-20">
       <h1 className="text-3xl font-bold text-center mb-6">🧠 Trivia Digest</h1>
 
       {/* Show Start button first */}
@@ -81,6 +82,8 @@ export default function HomePage() {
 
       {/* Show leaderboard after submitting score or if already played today */}
       {(submitted || hasPlayedToday) && <TriviaCard onComplete={handleComplete} />}
+
+      <CountdownTimer />
     </main>
   );
 }
